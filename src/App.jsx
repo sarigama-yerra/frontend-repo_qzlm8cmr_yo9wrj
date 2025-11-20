@@ -1,71 +1,65 @@
+import { useEffect, useState } from 'react'
+import Header from './components/Header'
+import GameGrid from './components/GameGrid'
+import TopupFlow from './components/TopupFlow'
+
+const API_BASE = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000'
+
 function App() {
+  const [selectedGame, setSelectedGame] = useState(null)
+  const [seeded, setSeeded] = useState(false)
+
+  useEffect(() => {
+    // attempt to seed backend with default games/options (idempotent)
+    const seed = async () => {
+      try {
+        await fetch(`${API_BASE}/api/seed`, { method: 'POST' })
+        setSeeded(true)
+      } catch (e) {
+        console.error('Seed failed', e)
+      }
+    }
+    seed()
+  }, [])
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-      {/* Subtle pattern overlay */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(59,130,246,0.05),transparent_50%)]"></div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+      <Header />
 
-      <div className="relative min-h-screen flex items-center justify-center p-8">
-        <div className="max-w-2xl w-full">
-          {/* Header with Flames icon */}
-          <div className="text-center mb-12">
-            <div className="inline-flex items-center justify-center mb-6">
-              <img
-                src="/flame-icon.svg"
-                alt="Flames"
-                className="w-24 h-24 drop-shadow-[0_0_25px_rgba(59,130,246,0.5)]"
-              />
-            </div>
-
-            <h1 className="text-5xl font-bold text-white mb-4 tracking-tight">
-              Flames Blue
-            </h1>
-
-            <p className="text-xl text-blue-200 mb-6">
-              Build applications through conversation
-            </p>
-          </div>
-
-          {/* Instructions */}
-          <div className="bg-slate-800/50 backdrop-blur-sm border border-blue-500/20 rounded-2xl p-8 shadow-xl mb-6">
-            <div className="flex items-start gap-4 mb-6">
-              <div className="flex-shrink-0 w-8 h-8 bg-blue-500 text-white rounded-lg flex items-center justify-center font-bold">
-                1
-              </div>
-              <div>
-                <h3 className="font-semibold text-white mb-1">Describe your idea</h3>
-                <p className="text-blue-200/80 text-sm">Use the chat panel on the left to tell the AI what you want to build</p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-4 mb-6">
-              <div className="flex-shrink-0 w-8 h-8 bg-blue-500 text-white rounded-lg flex items-center justify-center font-bold">
-                2
-              </div>
-              <div>
-                <h3 className="font-semibold text-white mb-1">Watch it build</h3>
-                <p className="text-blue-200/80 text-sm">Your app will appear in this preview as the AI generates the code</p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-4">
-              <div className="flex-shrink-0 w-8 h-8 bg-blue-500 text-white rounded-lg flex items-center justify-center font-bold">
-                3
-              </div>
-              <div>
-                <h3 className="font-semibold text-white mb-1">Refine and iterate</h3>
-                <p className="text-blue-200/80 text-sm">Continue the conversation to add features and make changes</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Footer */}
-          <div className="text-center">
-            <p className="text-sm text-blue-300/60">
-              No coding required • Just describe what you want
-            </p>
-          </div>
+      <main className="max-w-6xl mx-auto px-4 py-10">
+        <div className="text-center mb-10">
+          <h1 className="text-3xl sm:text-4xl font-bold text-slate-900">Top up your favorite games in seconds</h1>
+          <p className="text-slate-600 mt-2">Instant delivery. Secure checkout. Global coverage.</p>
         </div>
-      </div>
+
+        {!selectedGame ? (
+          <>
+            <h2 className="text-lg font-semibold text-slate-800 mb-4">Popular Games</h2>
+            <GameGrid onSelect={setSelectedGame} />
+          </>
+        ) : (
+          <div className="space-y-6">
+            <button onClick={()=>setSelectedGame(null)} className="text-sm text-blue-600 hover:underline">← Back to games</button>
+
+            <div className="flex items-center gap-4">
+              <img src={selectedGame.image || 'https://i.imgur.com/8Km9tLL.png'} className="w-14 h-14 rounded-xl object-cover" />
+              <div>
+                <div className="text-2xl font-semibold text-slate-900">{selectedGame.name}</div>
+                <div className="text-slate-500 text-sm">{selectedGame.publisher || '—'}</div>
+              </div>
+            </div>
+
+            <TopupFlow game={selectedGame} />
+          </div>
+        )}
+      </main>
+
+      <footer className="border-t border-slate-200 py-10 mt-10">
+        <div className="max-w-6xl mx-auto px-4 text-sm text-slate-500 flex flex-col sm:flex-row items-center justify-between gap-2">
+          <div>© {new Date().getFullYear()} GameTopup. All rights reserved.</div>
+          <div className="opacity-75">Built for demo purposes.</div>
+        </div>
+      </footer>
     </div>
   )
 }
